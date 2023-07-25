@@ -1,0 +1,4 @@
+@PostConstruct -> 초기화 전에 사용 될 수 있음.
+@EventListner(ApplicationReadyEvent.class) -> 빈으로 등록해야 사용 가능
+@Profile("local") spring.profiles.active = 'local'
+
