@@ -1,0 +1,24 @@
+트랜잭션을 활용 하면 
+
+트랜잭션 시작
+테스트 A 실행
+트랜잭션 롤백
+
+트랜잭션 시작
+테스트 B 실행
+트랜잭션 롤백
+
+@BeforeEach, @AfterEach 를 활용하면 된다. 
+
+void beforeEach() {
+  transactionManager.getTransaction();
+}
+void afterEach() {
+  transactionManger.rollback();
+}
+
+
+같은 트랜잭션 동기화 매니저에서 가져옴
+
+근데 일일히 trnasaction rollback 쓰기 귀찮음 
+
