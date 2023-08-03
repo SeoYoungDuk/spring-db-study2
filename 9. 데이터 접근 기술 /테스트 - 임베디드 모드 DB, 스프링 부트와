@@ -1,0 +1,7 @@
+테스트의 경우에는
+데이터 베이스 서버를 띄울 필요가 굳이 없음. 테스트 끝나면 디비가 필요없기 때문에 그럴때 임베디드 모드 사용.
+
+
+spring.datasource.url, spring.datasoure.username 사용하지 않고, datasource bean 도 삭제하면
+스프링 부트는 임베디드 모드로 접근하는 데이터 소스를 만들어서 제공함.
+
