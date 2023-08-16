@@ -1,0 +1,27 @@
+em.persist();
+
+em.find(Item.class, id);
+
+
+Item findItem = em.find(Item.class, itemId):
+findItem.setItemName(updateParam.getItemName());
+findItem.setPrice(updateParam.getPrice());
+findItem.setQuantity(updateParam.getQuantity());
+
+트랜잭션이 커밋 되는 시점에 update 쿼리 만듬.
+
+public List<Item> findAll(ItemSearchCond cond) {
+  String jpql = "select i from Item i";
+  //그냥 쓰면 동적 쿼리 쓰기 어려움.
+  if(StringUtils.haxText(itemName)) {
+    query.setParameter("itemName", itemName);
+  }
+  
+  if(StringUtils.haxText(itemName)) {
+    query.setParameter("itemName", itemName);
+  }
+  return em.createQuery(jpql, item.class).getResultList();
+}
+
+
+
