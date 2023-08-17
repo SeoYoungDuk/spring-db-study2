@@ -1,0 +1,12 @@
+PersistenceException 및 하위 예외가 발생함.
+
+추가로 IllegalStateExcption IllegalArgumentException 을 발생 시킬 수 있다.
+
+어떻게 DataAccessException으로 표현 할수 있을까 ?
+
+비밀은 @Repository 에있다
+
+@Repository 컴포넌트 스캔의 대상이 되고,
+@Repository 예외변환 AOP 적용 대상이 된다.
+
+PersistenceException을 DataAccessException으로 변환 해줌.
