@@ -1,0 +1,10 @@
+
+
+ItemService 에서 바로 SpringDataJpaItemRepository 주입해서 사용하면 된다.
+그런데, 사이에 ItemRepsitory 를 끼어넣어 복잡해지기 때문에, 구조상 고민이 있다.
+
+유지보수 관점에서는 ItemService를 DI 를 사용 함으로, 서비스 코드를 지킬수 있는 장점이 있음.
+Adapter 코드까지 함께 유지보수 해줘야 한다는 단점이 있음
+
+구조의 안정성 vs 개발의 편리성 사이의 선택.
+둘중 하나가 정답이 있는것은 아니고, 상황에 따라 선택해야함.
