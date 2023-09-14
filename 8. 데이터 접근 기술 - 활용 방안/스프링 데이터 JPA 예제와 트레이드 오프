@@ -1,5 +1,3 @@
-
-
 ItemService 에서 바로 SpringDataJpaItemRepository 주입해서 사용하면 된다.
 그런데, 사이에 ItemRepsitory 를 끼어넣어 복잡해지기 때문에, 구조상 고민이 있다.
 
