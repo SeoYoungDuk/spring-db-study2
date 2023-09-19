@@ -1,0 +1,10 @@
+jpa 학습 곡선이 높음
+통계 쿼리를 주로 작성하면 불편함.
+
+jpa, jdbctemplate 두개의 기술을 같이 사용하면, 트랜잭션을 하나로 묶을수 없는 문제가 발생
+JpaTransactionManager 도 DataSourceTransactionManager 가 제공하는 기능을 대부분 제공한다.
+
+주의점
+jpa, jdbctemplate 두개의 기술을 같이 사용하면 JPA 플러시 라는 타이밍에 주의해야함.
+하나의 트랜잭션 안에서 JPA를 통해 데이터를 변경한 다음에, JdbcTemplate 을 호출 하는경우 데이터를 읽지 못하는 문제가 발생한다.
+JPA 플러시 하고, JdbcTemplate 를 호출해야한다.
