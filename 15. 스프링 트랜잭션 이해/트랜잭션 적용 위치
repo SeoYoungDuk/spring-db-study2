@@ -1,0 +1,46 @@
+@Transactional
+public class Service {
+  @Transactional(readonly = true)
+  void method() {
+
+  }
+}
+
+구체하고 자세한게 우선순위가 높음
+클래스 < 메소드
+인터페이서 < 인터페이스를 구현한 클래스
+
+
+public class TxLevelTest {
+  @Autowired
+  LevelService service;
+  @Test
+  void orderTest() {
+    service.write();
+    service.read();
+  }
+  @TestConfiguration
+  static class TxLevelConfig {
+  
+  }
+  @Transactional(readOnly = true) 
+  public class LevelService{
+    @Transactional(readOnly = false)
+    public void write(){
+      boolean txActive = TransactionSynchornizationManger.isActualTracnactionActiove();
+      boolean txReadOnly = TransactionSynchornizationManger.isCurrentTracnactionReadOnly();
+    }
+    public void read(){
+      boolean txActive = TransactionSynchornizationManger.isActualTracnactionActiove();
+      boolean txReadOnly = TransactionSynchornizationManger.isCurrentTracnactionReadOnly();
+    }
+  }
+}
+
+인터페이스에 @Transactional 적용
+1. 클래스의 메서드
+2. 클래스 타입
+3. 인터페이스의 메서드
+4. 인터페이스 타입 
+
+인터페이스에 애노테이션을 두면 AOP가 적용 되지 않을 수도 있어서, 가급적 구체 클래스에 사용하자
