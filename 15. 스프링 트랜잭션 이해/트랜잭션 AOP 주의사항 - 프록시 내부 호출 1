@@ -45,3 +45,23 @@ public class InternalCallV1Test {
     }
   }
 }
+
+internal 호출 시 
+1. 프록시 호출
+2. 트랜잭션 적용
+3. 트랜잭션 적용 후 실제 객체 인스턴스의 internal 호출
+4. 트랜잭션 종료
+
+external 호출 시 
+1. callSerivce 트랜잭션 프록시 호출
+2. extenal메서드는 트랜잭션이 없다. 따라서 트랜잭션 프록시는 트랜잭션을 적용하지 않는다.
+3. 트랜잭션을 적용하지않고 실제 객체의 인스턴스의 external을 호출한다.
+4. interanl 호출시 나 자신의 interanl을 호출한다.
+5. 자기 자신을 가르킴으로 실제 대상(target)의 인스턴스를 뜻한다.
+6. 결과적으로 target에 있는 internal을 직접 호출한다.
+
+프록시 방식의 AOP한계
+프록시를 사용하면 메서드 내부 호풀에 프록시를 적용 할수 없다.
+
+해결방법
+internal() 메서드를 별도의 클래스로 분리한다.
