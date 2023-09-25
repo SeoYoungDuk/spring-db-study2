@@ -1,0 +1,34 @@
+
+@SpringBootTest
+public class InitTxTest {
+  @AutoWired Hello hello;
+  
+  void test() {
+  //초기화 코드는 스프링이 초기화 되는 시점에 호출 된다.
+  //hello.intV1(); -> 트랜잭션이 적용됨
+  }
+  @Bean
+  Hello hello() {
+    reutnr new Hello();
+  }
+  static class Hello {
+    @PostConstruct
+    @Transactional
+    public void initV1() {
+      boolean isActive = TransactionSynchornizationMamger.isActualTransactionActive();
+      log.info("Hello init PostConstruct tx active={}, isActive);
+    }
+
+    @EventListner(ApplicationReadyEvent.class) // 스프링 컨테이너가 다 떴다.
+    @Transactional
+    public void initV2() {
+      boolean isActive = TransactionSynchornizationMamger.isActualTransactionActive();
+      log.info("Hello init ApplicationReadyEvent tx active={}, isActive);
+    }
+  }
+  
+}
+
+초기화 코드에 transactional을 함께 사용하면 트랜잭션이 적용되지 않는다.
+왜냐하면 초기화 코드가 먼저 호출되고, 그다음에 트랜잭션 AOP가 적용 되기 때문
+ApplicationReadyEvent 사용하면 스프링 컨테이너 다 뜨고 트랜잭션 적용 가능하다.
