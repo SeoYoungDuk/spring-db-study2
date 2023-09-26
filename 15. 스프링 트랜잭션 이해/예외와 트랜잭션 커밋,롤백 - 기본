@@ -1,0 +1,73 @@
+
+
+예외 발생시 스프링 트랜잭션은 AOP예외와 종류에 따라 트랜잭션을 커밋하거나 롤백한다.
+
+언체크예외 - 롤백
+체크예외
+
+@SpringBootTest
+public class RollbackTest {
+  @Autowired
+  RollbackService service;
+
+  @Test
+  void runtimeException() {
+    service.runtimeException();
+//Create New Transaction
+//Open new EntityManager
+//Getting transaction
+//call runtimeException
+//Completing transaction
+//Rollback JPA transaction
+//Closing JPA Entitymanager
+  }
+@Test
+  void checkedException() {
+    service.checkedException();
+//Create New Transaction
+//Open new EntityManager
+//Getting transaction
+//call checkedException
+//Completing transaction
+//Commit JPA transaction
+//Closing JPA Entitymanager
+  }
+
+@Test
+  void rollbackFor() {
+    service.rollbackFor();
+//Create New Transaction
+//Open new EntityManager
+//Getting transaction
+//call checkedException
+//Completing transaction
+//Rollback JPA transaction
+//Closing JPA Entitymanager
+  }
+  
+  @TestConfiguration
+  static class RollbackTestConfig {
+    @Bean
+    RollbackService rollbackService {
+      return new RollbackService();
+    }
+  }
+  @Slf4j
+  static class RollbackService {
+    //런타임 예외: 롤백
+    @Transactional
+    public void runtimeException() {
+        throw new RuntimeExcption();
+    }
+    //체크예외 발생: 커밋
+    @Transactional
+    public void checkedException() throws MyException {
+        throw new MyException();
+    }
+    //체크 예외 rollbackFor 지정: 롤백
+    @Transactional(rollbackFor=MyException.class)
+    public void rollbackFor() throws MyException {
+        throw new MyException();
+    }
+  }
+}
