@@ -1,0 +1,50 @@
+public class BasicTxTest {
+  @Autowired
+  PlatformTransactionManager txManager;
+
+  @TestConfiguration
+  static class Confing {
+    @Bean
+    public PlatformTranasctionManager transactionManager(DataSource dataSource) {
+      return new DataSourceTransactionManager(dataSource);
+    }
+  }
+
+
+  @Test
+  void double_commit() {
+    log.info("트랜잭션1 시작");
+    TransactionStatus tx1 = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("트랜잭션1 커밋");
+    txmanager.commit(tx1);
+
+    log.info("트랜잭션2 시작");
+    TransactionStatus tx2 = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("트랜잭션2 커밋");
+    txmanager.commit(tx2);
+  }
+트랜잭션 1
+Acquire Connection[HikariProxyConnection@100000 wrapping conn0]
+트랜잭션 2
+Acquire Connection[HikariProxyConnection@100000 wrapping conn0]
+
+트랜잭션1, 트랜잭션2 가 같은 conneciton을 사용했다. 
+풀 때문에 그런건데 트랜잭션1이 커밋 완료하고 풀에 반납하고 트랜잭션2가 커넥션 풀에서 같은 커넥션을 획득한것.
+
+히카리 커넥션 풀에서 커넥션을 획득하면 실제 커넥션을 그대로 반환하는게 아니고 히카리 프록시 커넥션을 반환한다.
+그래서 주소는 다름.
+
+  @Test
+  void double_rollback() {
+    log.info("트랜잭션1 시작");
+    TransactionStatus tx1 = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("트랜잭션1 롤백");
+    txmanager.rollback(tx1);
+
+    log.info("트랜잭션2 시작");
+    TransactionStatus tx2 = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("트랜잭션2 롤백");
+    txmanager.rollback(tx2);
+  }
+} 
+
