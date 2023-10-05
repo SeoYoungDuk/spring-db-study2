@@ -1,0 +1,30 @@
+public class BasicTxTest {
+  @Autowired
+  PlatformTransactionManager txManager;
+
+  @TestConfiguration
+  static class Confing {
+    @Bean
+    public PlatformTranasctionManager transactionManager(DataSource dataSource) {
+      return new DataSourceTransactionManager(dataSource);
+    }
+  }
+
+  @Test
+  void commit() {
+    log.info("트랜잭션 시작");
+    TransactionStatus status = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("트랜잭션 커밋 시작");
+    txmanager.commit(status);
+    log.info("트랜잭션 커밋 완료");
+  }
+
+  @Test
+  void commit() {
+    log.info("트랜잭션 시작");
+    TransactionStatus status = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("트랜잭션 롤백 시작");
+    txmanager.rollback(status);
+    log.info("트랜잭션 롤백 완료");
+  }
+} 
