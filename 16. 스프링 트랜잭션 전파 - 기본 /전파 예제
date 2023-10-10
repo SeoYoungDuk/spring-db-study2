@@ -1,2 +1,59 @@
 외부 트랜잭션 시작 하고, 내부 트랜잭션도 시작 됐을 때
 
+public class BasicTxTest {
+  @Autowired
+  PlatformTransactionManager txManager;
+
+  @TestConfiguration
+  static class Confing {
+    @Bean
+    public PlatformTranasctionManager transactionManager(DataSource dataSource) {
+      return new DataSourceTransactionManager(dataSource);
+    }
+  }
+
+  @Test
+  void inner_commit() {
+    log.info("외부 트랜잭션 시작");
+    TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("outer.isNewTransaction() ={}", outer.isNewTransaction());
+
+    log.info("내부 트랜잭션 시작");
+    TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute()); -> 참여한다
+    log.info("inner.isNewTransaction() ={}", inner.isNerTransaction());
+    log.info("내부 트랜잭션 커밋"); -> 커밋에 아무런 로그도 찍히지 않는다. //내부 트랜잭션이 참여하면 아무런 동작도 하지 않는다.
+    txManager.commit(inner);
+
+    og.info("외부 트랜잭션 커밋");
+    txManager.commit(outer);
+  }
+  //외부 트랜잭션 수행중인데, 내부 트랜잭션을 추가로 수행했다.
+  //외부트랜잭션은 처음 트랜잭션이다 이경우는 isNewTransaction true다.
+  //내부 트랜잭션 시작하는 시점은 외부 트랜잭션이 진행중인 상태이다. -> 내부트랜잭션이 외부 트랜잭션이 참여한다.
+  //내부트랜잭션이 외부 트랜잭션이 참여한다는 뜻은 내부트랜잭션이 외부 트랜잭션을 그대로 이어 받아서 따른다는 뜻이다.
+  // 외부트랜잭션과 내부 트랜잭션이 하나의 물리 트랜 잭션으로 묶이는 것이다.
+
+  // 트랜잭션을 생각해보면 하나의 커넥션에 커밋은 한번만 호출 할 수 있다. 커밋이나 롤백을 하면 해당 트랜잭션은 끝나버린다.
+  // 스프링은 어떻게 외부 트랜잭션과 내부트랜잭션을 묶어서 동작하는걸까 ?
+  
+} 
+외부 트랜잭션
+트랜잭션 매니저의 txManager.getTransaction() 호출해서 외부 트랜잭션 시작
+트랜잭션 매니저는 데이터 소스를 통해 커넥션 생성
+생성한 커넥션을 수동 커밋 모드로 설정 
+트랜잭션 매니저는 트랜잭션 동기화 매니저에 커넥션 보관
+트랜잭션 매니저는 트랜잭션을 생성한 결과를 TransactionStatus 에 담아서 반환
+isNewTransaction true다.
+
+내부 트랜잭션
+트랜잭션 매니저의 txManager.getTransaction() 호출해서 내부 트랜잭션 시작
+트랜잭션 매니저는 트랜잭션 동기화 매니저를 통해 기존 트랜잭션이 존재하는지 확인한다.
+기존트랜잭션이 존재하므로 기존 트랜잭션에 참여한다. 참여한다는 뜻은 아무것도 안한다는 뜻이다.
+이미 물리트랜잭션이 진행중이고, 기존에 시작된 트랜잭션을 자연스럽게 사용한다.
+이후 로직은 자연스럽게 트랜잭션 동기화에 보관된 기존 커넥션을 사용한다.
+트랜잭션 매니저는 트랜잭션을 생성한 결과를 TransactionStatus 에 담아서 반환
+isNewTransaction false다.
+
+응답 흐름
+내부 트랜잭션에서 커밋하면, 신규 트랜잭션이 아니기 대문에 실제 커밋을 호출하지 않는다.
+외부 트랜잭션에서 커밋하면, 신큐 트랜잭셔닝기 때문에 DB 커넥션에 실제 커밋을 호출한다.
