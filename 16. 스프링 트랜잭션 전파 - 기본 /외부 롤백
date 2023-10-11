@@ -1,1 +1,35 @@
+public class BasicTxTest {
+  @Autowired
+  PlatformTransactionManager txManager;
 
+  @TestConfiguration
+  static class Confing {
+    @Bean
+    public PlatformTranasctionManager transactionManager(DataSource dataSource) {
+      return new DataSourceTransactionManager(dataSource);
+    }
+  }
+
+  @Test
+  void outer_rollback() {
+    log.info("외부 트랜잭션 시작");
+    TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+
+    log.info("내부 트랜잭션 시작");
+    TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("내부 트랜잭션 커밋");
+    txManager.commit(inner);
+    
+    log.info("외부 트랜잭션 롤백");
+    txManager.rollback(outer);
+  }
+  외부 트랜잭션이 물리트랜잭션을 시작하고 롤백하는것을 확인 할 수 있음.
+  내부 트랜잭션은 앞서 배운대로 물리 트랜잭션에 직접적으로 관여하지 않는다.
+  
+  응답 흐름 - 내부 트랜잭션
+  신규 트랜잭션이 아니기때문에 실제 커밋이 호출되지 않는다.
+  실제 커넥션에 커밋이나 롤백을 호출하면 물리 트랜잭션이 끝난다.
+  
+  응답 흐름 - 외부 트랜잭션
+  트랜잭션 매니저는 롤백 시점에 신규 트랜잭션 여부에 따라 다르게 동작한다. 외부 트랜잭션은 신규 트랜잭션 이므로 실제 롤백을 호출한다.
+} 
