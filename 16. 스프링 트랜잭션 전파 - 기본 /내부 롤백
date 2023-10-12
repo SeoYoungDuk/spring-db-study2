@@ -1,0 +1,54 @@
+내부 트랜잭션은 롤백 했지만, 내무 트랜잭션은 물리 트랜잭션에 영향을 주지 않는다.
+대원칙 : 모든 논리 트랜잭션이 커밋 되어야 커밋된다. 논리 트랜잭션이 하나라도 롤백 되면 전체 롤백 된다.
+
+public class BasicTxTest {
+  @Autowired
+  PlatformTransactionManager txManager;
+
+  @TestConfiguration
+  static class Confing {
+    @Bean
+    public PlatformTranasctionManager transactionManager(DataSource dataSource) {
+      return new DataSourceTransactionManager(dataSource);
+    }
+  }
+
+  @Test
+  void inner_rollback() {
+    log.info("외부 트랜잭션 시작");
+    TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+
+    log.info("내부 트랜잭션 시작");
+    TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("내부 트랜잭션 롤백");
+    txManager.rollback(inner); // rollback-only 표시
+    
+    log.info("외부 트랜잭션 커밋");
+    txManager.commit(outer);
+  }
+  1. 물리 트랜잭션 시작
+  2. 내부 트랜잭션 시작
+    a. participating in existing transaction
+    b. 기존 트랜잭션에 참여한다.
+  3. 내부 트랜잭션 롤백
+    a.Participating transaction failed - marking existiong transaction as rollback- only
+    b. 내부 트랜잭션을 롤백하면 실제 물리트랜잭션을 롤백하지 않는다, 대신에 기존 트랜잭션을 롤백 전용으로 표시함.
+  4. 외부 트랜잭션 커밋
+    a. 롤백 전용 표시 되어, 외부트랜잭션 롤백함.
+
+  응답 흐름 - 내부 트랜잭션
+  1. 내부 트랜잭션 롤백함
+  2. 신규 트랜잭션이 아니기 때문에 실제 롤백을 호출하지 않는다. 물리 트랜잭션을 종료 할때까지 이어짐
+  3. 물리 트랜잭션을 롤백하지 않는 대신에 트랜잭션 동기화 매니저에 rollbackOnly=true라는 표시를 해둔다.
+
+ 응답 흐름 - 외부 트랜잭션
+  4. 트랜잭션 매니저를 통해 외부 트랜잭션 커밋함.
+  5. 신규 트랜잭션 여부를 통해 다르게 동작함 외부트랜잭션은 신규 트랜잭션이므로 db커넥션에 실제 커밋을 호출한다.
+     이때 동기화 매니저에 롤백전용 표시 되어있는지 확인함. 롤백전용 표시가 있으면 물리 트랜잭션을 커밋하는것이 아니라 롤백한다.
+  6. 실제 데이터베이스에 롤백이 반영되고, 물리트랜잭션도 끝난다.
+  7. 트랜잭션 매니저에 커밋을 호출한 개발자는 커밋을 기대했는데 롤백 전용표시가 되어있어 롤백이 되어 버렸다.
+      이것은 조용히 넘어갈수 있는 문제가 아니다. 시스템 입장에서는 커밋을 호출 했지만 롤백이 되어버렸다.
+      예를들어 고객이 주문은 성공했는데, 실제로는 롤백이 되어버려서 주문이 생성되지 않은것이다.
+      스프링은 이경우에 UnexpectedRollbackException 런타임 예외를 던진다. 그래서 커밋을 시도했지만 기대하지 않은 롤백이 발생했다는것을 명확하게 알려준다.
+  
+} 
