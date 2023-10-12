@@ -1,0 +1,42 @@
+외부 트랜잭션과 내부 트랜잭션을 완전히 분리해서 사용하는 방법
+REQUIRES_NEW 옵션 사용한다.
+외부 트랜잭션과 내부 트랜잭션이 각각 별도의 물리 트랜잭션을 가진다.
+별도의 물리 트랜잭션을 가진다는 뜻은 각각의 별도의 DB 커넥션을 가진다는 의미이다.
+
+
+public class BasicTxTest {
+  @Autowired
+  PlatformTransactionManager txManager;
+
+  @TestConfiguration
+  static class Confing {
+    @Bean
+    public PlatformTranasctionManager transactionManager(DataSource dataSource) {
+      return new DataSourceTransactionManager(dataSource);
+    }
+  }
+
+  @Test
+  void inner_rollback() {
+    log.info("외부 트랜잭션 시작");
+    TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("inner.isNewTransaction()={}", outer.isnewTransaction()); // true
+
+    //Suspendiong current transaction
+    //Switching jdbc connetion
+    log.info("내부 트랜잭션 시작");
+    TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute());
+    DefaultTransactionAttribute definition = new DefaultTransactionAttribute();
+    definition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    TransactionStatus inner = txManager.getTransaction(definition);
+    log.info("inner.isNewTransaction()={}", inner.isNewTransaction()); // true
+    //Rollback transaction
+    txManager.rollback(inner); // fhfqor
+    //Resuming transaction
+    log.info("외부 트랜잭션 커밋");
+    txManager.commit(outer);
+  }
+  
+  => 데이터 베이스 커넥션이 빨리 고갈될수도 있다.
+  
+}
