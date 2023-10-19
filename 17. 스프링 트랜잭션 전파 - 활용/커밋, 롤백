@@ -1,0 +1,125 @@
+public class MemberServiceTest {
+  @AutoWired
+  private MemberService memeberService;
+  @AutoWired
+  private MemberRepository memberRepository;
+  @AutoWired
+  private LogRepository logRepository;
+
+  @Test
+  public void outerTxOff_sucess() {
+    String username = "outerTxOff_success";
+    
+    memberService.joinV1(username);
+    AssertTrue(memberRepository.find(username).isPresent());
+    AssertTrue(logRepository.find(username).isPresent()));
+  }
+  }
+} 
+
+public class MemberService {
+  private final MemberRepository memberRepository;
+  private final LogRepository logRepository;
+  
+  public void joinV1(Strign userName) {
+    Member member = new Member(username);
+    Log logMessage = new Log("로그 정상");
+
+    memberRepository.save(member);
+    logRepository.save(logMessage);
+  }
+
+  public void joinV2(Strign userName) {
+    Member member = new Member(username);
+    Log logMessage = new Log("로그 예외");
+
+    memberRepository.save(member);
+    try {
+      logRepository.save(logMessage);
+    }
+    catch (RuntimeException e) {
+      log.info("log 저장에 실패 했습니다. logMesseage : {}, logMessage.getMesseage());
+      log.info("w정상 흐름 반환);
+    }
+  }
+} 
+
+public class MemberRepository {
+  private final EntityManager em,
+  
+  @Transactional
+  public void save() {
+    log.info(member 저장);
+    em.persist(member);
+  }
+
+  public Optional<Member> find(String username) {
+    
+  }
+
+}
+
+public class LogService {
+  private final LogRepository logReppository,
+  
+  @Transactional
+  public void save() {
+    log.info(member 저장);
+    em.persist(member);
+  }
+
+  public Optional<Member> find(String username) {
+    
+  }
+
+}
+
+public class LogRepository {
+  private final EntityManager em,
+  
+  @Transactional
+  public void save(Log logMessage) {
+    log.info(log 저장);
+    em.persist(logMessage);
+    if(logMessage.getMessage().contains("로그 예외")) {
+      throw new RuntimeException();
+    }
+  }
+
+  public Optional<Member> find(String username) {
+    
+  }
+
+}
+public class BasicTxTest {
+  @Autowired
+  PlatformTransactionManager txManager;
+
+  @TestConfiguration
+  static class Confing {
+    @Bean
+    public PlatformTranasctionManager transactionManager(DataSource dataSource) {
+      return new DataSourceTransactionManager(dataSource);
+    }
+  }
+
+  @Test
+  void inner_rollback() {
+    log.info("외부 트랜잭션 시작");
+    TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+    log.info("inner.isNewTransaction()={}", outer.isnewTransaction()); // true
+
+    //Suspendiong current transaction
+    //Switching jdbc connetion
+    log.info("내부 트랜잭션 시작");
+    TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute());
+    DefaultTransactionAttribute definition = new DefaultTransactionAttribute();
+    definition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    TransactionStatus inner = txManager.getTransaction(definition);
+    log.info("inner.isNewTransaction()={}", inner.isNewTransaction()); // true
+    //Rollback transaction
+    txManager.rollback(inner); // fhfqor
+    //Resuming transaction
+    log.info("외부 트랜잭션 커밋");
+    txManager.commit(outer);
+  }
